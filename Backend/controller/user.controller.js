@@ -1,51 +1,74 @@
-import User from "../model/user.model.js";
 import bcryptjs from "bcryptjs";
-export const signup = async(req, res) => {
-    try {
-        const { fullname, email, password } = req.body;
-        const user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({ message: "User already exists" });
-        }
-        const hashPassword = await bcryptjs.hash(password, 10);
-        const createdUser = new User({
-            fullname: fullname,
-            email: email,
-            password: hashPassword,
-        });
-        await createdUser.save();
-        res.status(201).json({
-            message: "User created successfully",
-            user: {
-                _id: createdUser._id,
-                fullname: createdUser.fullname,
-                email: createdUser.email,
-            },
-        });
-    } catch (error) {
-        console.log("Error: " + error.message);
-        res.status(500).json({ message: "Internal server error" });
+import jwt from "jsonwebtoken";
+
+import { config } from "../config.js";
+import User from "../model/user.model.js";
+import { validateAuthInput } from "../utils/validation.js";
+
+const publicUser = (user) => ({
+  id: user._id,
+  fullname: user.fullname,
+  email: user.email,
+});
+
+const createToken = (user) =>
+  jwt.sign({ sub: user._id.toString(), email: user.email }, config.jwtSecret, {
+    expiresIn: "7d",
+  });
+
+export const signup = async (req, res, next) => {
+  try {
+    const { errors, fullname, email } = validateAuthInput(req.body, true);
+    if (Object.keys(errors).length > 0) {
+      return res.status(422).json({ message: "Please correct the highlighted fields", errors });
     }
+
+    if (await User.exists({ email })) {
+      return res.status(409).json({ message: "An account with this email already exists" });
+    }
+
+    const user = await User.create({
+      fullname,
+      email,
+      password: await bcryptjs.hash(req.body.password, 12),
+    });
+
+    return res.status(201).json({
+      message: "Account created successfully",
+      token: createToken(user),
+      user: publicUser(user),
+    });
+  } catch (error) {
+    next(error);
+  }
 };
-export const login = async(req, res) => {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
-        const isMatch = await bcryptjs.compare(password, user.password);
-        if (!user || !isMatch) {
-            return res.status(400).json({ message: "Invalid username or password" });
-        } else {
-            res.status(200).json({
-                message: "Login successful",
-                user: {
-                    _id: user._id,
-                    fullname: user.fullname,
-                    email: user.email,
-                },
-            });
-        }
-    } catch (error) {
-        console.log("Error: " + error.message);
-        res.status(500).json({ message: "Internal server error" });
+
+export const login = async (req, res, next) => {
+  try {
+    const { errors, email } = validateAuthInput(req.body);
+    if (Object.keys(errors).length > 0) {
+      return res.status(422).json({ message: "Enter a valid email and password", errors });
     }
+
+    const user = await User.findOne({ email }).select("+password");
+    const passwordMatches = user
+      ? await bcryptjs.compare(req.body.password, user.password)
+      : false;
+
+    if (!user || !passwordMatches) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    return res.status(200).json({
+      message: "Login successful",
+      token: createToken(user),
+      user: publicUser(user),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const me = (req, res) => {
+  res.status(200).json({ user: publicUser(req.user) });
 };

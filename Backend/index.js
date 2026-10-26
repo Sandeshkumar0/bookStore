@@ -1,36 +1,37 @@
-import express from "express";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
-import cors from "cors";
 
-import bookRoute from "./route/book.route.js";
-import userRoute from "./route/user.route.js";
+import app from "./app.js";
+import { config } from "./config.js";
 
-const app = express();
+const start = async () => {
+  if (!config.mongoUri) {
+    throw new Error("MONGODB_URI is required. Copy .env.example to .env and configure it.");
+  }
 
-app.use(cors());
-app.use(express.json());
+  if (config.isProduction && !process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is required in production.");
+  }
 
-dotenv.config();
+  await mongoose.connect(config.mongoUri);
+  console.log("Connected to MongoDB");
 
-const PORT = process.env.PORT || 4000;
-const URI = process.env.MongoDBURI;
+  const server = app.listen(config.port, () => {
+    console.log(`BookStore API listening on http://localhost:${config.port}`);
+  });
 
-// connect to mongoDB
-try {
-    mongoose.connect(URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
+  const shutdown = async (signal) => {
+    console.log(`${signal} received; shutting down gracefully`);
+    server.close(async () => {
+      await mongoose.disconnect();
+      process.exit(0);
     });
-    console.log("Connected to mongoDB");
-} catch (error) {
-    console.log("Error: ", error);
-}
+  };
 
-// defining routes
-app.use("/book", bookRoute);
-app.use("/user", userRoute);
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+};
 
-app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
+start().catch((error) => {
+  console.error("Unable to start the API:", error.message);
+  process.exit(1);
 });
