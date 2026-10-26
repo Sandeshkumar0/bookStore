@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Environment files (examples stay tracked)
+.env
+.env.*
+!.env.example
+
+# Build and test output
+dist/
+coverage/
+
+# Logs and editor files
+*.log
+.DS_Store
+.idea/
+.vscode/
