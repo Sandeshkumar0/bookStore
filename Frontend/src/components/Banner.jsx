@@ -1,45 +1,34 @@
-import React from "react";
-import banner from "../../public/Banner.png";
-function Banner() {
+import { Link } from "react-router-dom";
+
+export default function Banner() {
   return (
-    <>
-      <div className=" max-w-screen-2xl container mx-auto md:px-20 px-4 flex flex-col md:flex-row my-10">
-        <div className="w-full order-2 md:order-1 md:w-1/2 mt-12 md:mt-36">
-          <div className="space-y-8">
-            <h1 className="text-2xl md:text-4xl font-bold">
-              Hello, welcomes here to learn something{" "}
-              <span className="text-pink-500">new everyday!!!</span>
-            </h1>
-            <p className="text-sm md:text-xl">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dolor,
-              et totam. Tempora amet atque expedita, quae corrupti totam sed
-              pariatur corporis at veniam est voluptas animi!
-            </p>
-            <label className="input input-bordered flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                className="w-4 h-4 opacity-70"
-              >
-                <path d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" />
-                <path d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" />
-              </svg>
-              <input type="text" className="grow" placeholder="Email" />
-            </label>
-          </div>
-          <button className="btn mt-6 btn-secondary">Get Started</button>
+    <section className="page-container grid min-h-[620px] items-center gap-10 py-16 lg:grid-cols-2 lg:py-24">
+      <div className="max-w-2xl">
+        <p className="mb-5 inline-flex rounded-full border border-amber-300 bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+          A better shelf starts here
+        </p>
+        <h1 className="text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+          Stories that stay with you.
+        </h1>
+        <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600 dark:text-slate-300">
+          Explore hand-picked books for curious minds, lifelong learners, and anyone looking for their next unforgettable read.
+        </p>
+        <div className="mt-9 flex flex-wrap gap-3">
+          <Link to="/courses" className="button-primary">Browse the catalog <span aria-hidden="true">→</span></Link>
+          <Link to="/signup" className="button-secondary">Create free account</Link>
         </div>
-        <div className=" order-1 w-full mt-20 md:w-1/2">
-          <img
-            src={banner}
-            className="md:w-[550px] md:h-[460px] md:ml-12"
-            alt=""
-          />
+        <dl className="mt-12 grid max-w-lg grid-cols-3 gap-4 border-t border-slate-200 pt-6 dark:border-slate-800">
+          <div><dt className="text-2xl font-bold">100+</dt><dd className="text-sm text-slate-500">Curated titles</dd></div>
+          <div><dt className="text-2xl font-bold">24/7</dt><dd className="text-sm text-slate-500">Browse anytime</dd></div>
+          <div><dt className="text-2xl font-bold">Free</dt><dd className="text-sm text-slate-500">Books to begin</dd></div>
+        </dl>
+      </div>
+      <div className="relative mx-auto w-full max-w-xl">
+        <div className="absolute inset-8 -rotate-3 rounded-[3rem] bg-amber-300/60 blur-2xl dark:bg-amber-600/20" />
+        <div className="relative overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/70 p-6 shadow-2xl shadow-slate-900/10 backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+          <img src="/Banner.png" alt="Reader discovering books" className="h-auto w-full object-contain" />
         </div>
       </div>
-    </>
+    </section>
   );
 }
-
-export default Banner;

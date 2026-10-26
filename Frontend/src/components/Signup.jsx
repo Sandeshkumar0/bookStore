@@ -1,131 +1,59 @@
-import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import Login from "./Login";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 import toast from "react-hot-toast";
-function Signup() {
-  const location = useLocation();
+import { Link, useNavigate } from "react-router-dom";
+
+import { useAuth } from "../context/AuthProvider";
+import AuthLayout from "./AuthLayout";
+
+export default function Signup() {
+  const { signup } = useAuth();
   const navigate = useNavigate();
-  const from = location.state?.from?.pathname || "/";
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+  const [serverError, setServerError] = useState("");
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm();
 
-  const onSubmit = async (data) => {
-    const userInfo = {
-      fullname: data.fullname,
-      email: data.email,
-      password: data.password,
-    };
-    await axios
-      .post("http://localhost:4001/user/signup", userInfo)
-      .then((res) => {
-        console.log(res.data);
-        if (res.data) {
-          toast.success("Signup Successfully");
-          navigate(from, { replace: true });
-        }
-        localStorage.setItem("Users", JSON.stringify(res.data.user));
-      })
-      .catch((err) => {
-        if (err.response) {
-          console.log(err);
-          toast.error("Error: " + err.response.data.message);
-        }
-      });
+  const submit = async (values) => {
+    setServerError("");
+    try {
+      await signup(values);
+      toast.success("Your account is ready!");
+      navigate("/courses", { replace: true });
+    } catch (error) {
+      if (error.errors) {
+        Object.entries(error.errors).forEach(([field, message]) => setError(field, { message }));
+      } else {
+        setServerError(error.message);
+      }
+    }
   };
-  return (
-    <>
-      <div className="flex h-screen items-center justify-center">
-        <div className=" w-[600px] ">
-          <div className="modal-box">
-            <form onSubmit={handleSubmit(onSubmit)} method="dialog">
-              {/* if there is a button in form, it will close the modal */}
-              <Link
-                to="/"
-                className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-              >
-                ✕
-              </Link>
 
-              <h3 className="font-bold text-lg">Signup</h3>
-              <div className="mt-4 space-y-2">
-                <span>Name</span>
-                <br />
-                <input
-                  type="text"
-                  placeholder="Enter your fullname"
-                  className="w-80 px-3 py-1 border rounded-md outline-none"
-                  {...register("fullname", { required: true })}
-                />
-                <br />
-                {errors.fullname && (
-                  <span className="text-sm text-red-500">
-                    This field is required
-                  </span>
-                )}
-              </div>
-              {/* Email */}
-              <div className="mt-4 space-y-2">
-                <span>Email</span>
-                <br />
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-80 px-3 py-1 border rounded-md outline-none"
-                  {...register("email", { required: true })}
-                />
-                <br />
-                {errors.email && (
-                  <span className="text-sm text-red-500">
-                    This field is required
-                  </span>
-                )}
-              </div>
-              {/* Password */}
-              <div className="mt-4 space-y-2">
-                <span>Password</span>
-                <br />
-                <input
-                  type="text"
-                  placeholder="Enter your password"
-                  className="w-80 px-3 py-1 border rounded-md outline-none"
-                  {...register("password", { required: true })}
-                />
-                <br />
-                {errors.password && (
-                  <span className="text-sm text-red-500">
-                    This field is required
-                  </span>
-                )}
-              </div>
-              {/* Button */}
-              <div className="flex justify-around mt-4">
-                <button className="bg-pink-500 text-white rounded-md px-3 py-1 hover:bg-pink-700 duration-200">
-                  Signup
-                </button>
-                <p className="text-xl">
-                  Have account?{" "}
-                  <button
-                    className="underline text-blue-500 cursor-pointer"
-                    onClick={() =>
-                      document.getElementById("my_modal_3").showModal()
-                    }
-                  >
-                    Login
-                  </button>{" "}
-                  <Login />
-                </p>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </>
+  return (
+    <AuthLayout
+      title="Create your account"
+      subtitle="Save books, build a cart, and explore the complete catalog."
+      footer={<>Already have an account? <Link to="/login" className="font-bold text-amber-600">Sign in</Link></>}
+    >
+      <form onSubmit={handleSubmit(submit)} className="space-y-5" noValidate>
+        {serverError && <div role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-200">{serverError}</div>}
+        <label className="block">
+          <span className="form-label">Full name</span>
+          <input type="text" autoComplete="name" className="input-field" {...register("fullname", { required: "Name is required", minLength: { value: 2, message: "Use at least 2 characters" }, maxLength: { value: 80, message: "Keep your name under 80 characters" } })} />
+          {errors.fullname && <span className="form-error">{errors.fullname.message}</span>}
+        </label>
+        <label className="block">
+          <span className="form-label">Email address</span>
+          <input type="email" autoComplete="email" className="input-field" {...register("email", { required: "Email is required", pattern: { value: /^\S+@\S+\.\S+$/, message: "Enter a valid email" } })} />
+          {errors.email && <span className="form-error">{errors.email.message}</span>}
+        </label>
+        <label className="block">
+          <span className="form-label">Password</span>
+          <input type="password" autoComplete="new-password" className="input-field" {...register("password", { required: "Password is required", minLength: { value: 8, message: "Use at least 8 characters" }, maxLength: { value: 72, message: "Use no more than 72 characters" } })} />
+          {errors.password && <span className="form-error">{errors.password.message}</span>}
+        </label>
+        <button type="submit" disabled={isSubmitting} className="button-primary w-full disabled:opacity-60">
+          {isSubmitting ? "Creating account…" : "Create account"}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }
-
-export default Signup;
