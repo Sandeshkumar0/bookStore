@@ -12,14 +12,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/akhil2k-lc/bookStoreApp.git"
+        "url": "git+https://github.com/Sandeshkumar0/bookStore.git"
     },
     "author": "Akhil",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/akhil2k-lc/bookStoreApp/issues"
+        "url": "https://github.com/Sandeshkumar0/bookStore/issues"
     },
-    "homepage": "https://github.com/akhil2k-lc/bookStoreApp#readme",
+    "homepage": "https://github.com/Sandeshkumar0/bookStore#readme",
     "dependencies": {
         "bcryptjs": "^3.0.3",
         "cors": "^2.8.6",
