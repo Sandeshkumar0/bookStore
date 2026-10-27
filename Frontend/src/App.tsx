@@ -1,3 +1,4 @@
+import { type ReactNode } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
@@ -6,28 +7,28 @@ import Footer from "./components/Footer";
 import Login from "./components/Login";
 import Navbar from "./components/Navbar";
 import NotFound from "./components/NotFound";
+import ScrollProgress from "./components/ScrollProgress";
 import Signup from "./components/Signup";
 import { useAuth } from "./context/AuthProvider";
 import Courses from "./courses/Courses";
 import Home from "./home/Home";
 
-function PageShell({ children }) {
+function PageShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-stone-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
+    <div className="site-shell">
+      <ScrollProgress />
       <Navbar />
-      <main className="flex-1">{children}</main>
+      <main className="min-h-[70vh]">{children}</main>
       <Footer />
     </div>
   );
 }
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) {
-    return <div className="grid min-h-screen place-items-center"><span className="loading loading-spinner loading-lg text-amber-500" /></div>;
-  }
+  if (loading) return <div className="page-loader" aria-label="Checking your archive access"><span /></div>;
   return user ? children : <Navigate to="/login" replace state={{ from: location }} />;
 }
 
@@ -46,7 +47,13 @@ export default function App() {
         <Route path="/cart" element={<PageShell><Cart /></PageShell>} />
         <Route path="*" element={<PageShell><NotFound /></PageShell>} />
       </Routes>
-      <Toaster position="bottom-right" toastOptions={{ duration: 3000 }} />
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          duration: 3200,
+          style: { background: "#171512", color: "#f4efe3", borderRadius: "0", border: "1px solid #4b4439" },
+        }}
+      />
     </>
   );
 }

@@ -1,7 +1,10 @@
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/$/, "");
 
 export class ApiError extends Error {
-  constructor(message, status, errors) {
+  status: number;
+  errors?: Record<string, string>;
+
+  constructor(message: string, status: number, errors?: Record<string, string>) {
     super(message);
     this.name = "ApiError";
     this.status = status;
@@ -9,7 +12,12 @@ export class ApiError extends Error {
   }
 }
 
-export const api = async (path, options = {}) => {
+interface ApiOptions extends Omit<RequestInit, "body"> {
+  token?: string | null;
+  body?: unknown;
+}
+
+export async function api<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const { token, body, headers, ...requestOptions } = options;
   const response = await fetch(`${API_URL}${path}`, {
     ...requestOptions,
@@ -21,9 +29,14 @@ export const api = async (path, options = {}) => {
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const payload = await response.json().catch(() => ({}));
+  const payload = (await response.json().catch(() => ({}))) as {
+    message?: string;
+    errors?: Record<string, string>;
+  };
+
   if (!response.ok) {
-    throw new ApiError(payload.message || "Something went wrong", response.status, payload.errors);
+    throw new ApiError(payload.message || "The archive could not complete that request.", response.status, payload.errors);
   }
-  return payload;
-};
+
+  return payload as T;
+}
